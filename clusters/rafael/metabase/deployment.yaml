@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metabase-nova
+  labels:
+    app: metabase
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: metabase
+  template:
+    metadata:
+      labels:
+        app: metabase
+    spec:
+      containers:
+        - name: metabase
+          image: metabase/metabase:v0.49.23
+          ports:
+            - containerPort: 3000
+              name: http
+          env:
+            - name: MB_DB_TYPE
+              value: "mysql"
+            - name: MB_DB_DBNAME
+              value: "metabaseappdb"
+            - name: MB_DB_PORT
+              value: "3306"
+            - name: MB_DB_HOST
+              value: "mysql-metabase"
+            - name: MB_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: metabase-db-secret
+                  key: MB_DB_USER
+            - name: MB_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: metabase-db-secret
+                  key: MB_DB_PASS
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 6
