@@ -4,3 +4,4 @@ metadata:
   name: appnova
 resources:
 - deployment.yaml
+- ns.yaml
